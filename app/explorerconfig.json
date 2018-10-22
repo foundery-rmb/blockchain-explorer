@@ -9,7 +9,7 @@
     "passwd": "password"
   },
   "sync": {
-    "type": "local",
+    "type": "host",
     "platform": "fabric",
     "blocksSyncTime": "3"
   }

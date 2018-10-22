@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fabric-explorer
+  namespace: fabric
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fabric-explorer
+      component: explorer
+  template:
+    metadata:
+      labels:
+        app: fabric-explorer
+        component: explorer
+    spec:
+      imagePullSecrets:
+      - name: dockerprivateregistrykey
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: postgres
+        image: postgres:10
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5432
+          name: postgres-port
+        env:
+        - name: POSTGRES_USER
+          value: "hppoc"
+        - name: POSTGRES_PASSWORD
+          value: "password"
+        - name: POSTGRES_DB
+          value: "fabricexplorer"
+        volumeMounts:
+        - mountPath: /shared
+          name: shared
+      - name: fabric-explorer-app
+        image: foundery.azurecr.io/foundery/fabric-blockchain-explorer:latest
+        imagePullPolicy: IfNotPresent
+        command:
+        - /bin/sh
+        - -c
+        - |
+          cd $EXPLORER_APP_PATH/app/persistence/fabric/postgreSQL/db && \
+          ./createdb.sh && \
+          ls / && ls /fabric-configs/ && \
+          cp /fabric-configs/* $EXPLORER_APP_PATH/app/platform/fabric && \
+          ID=$(date +%s%N) && \
+          echo $ID && \
+          mkdir -pv /tmp/credentialStore/credential && \
+          mkdir -pv /tmp/credentialStore/crypto && \
+          echo {\"name\":\"admin\",\"mspid\":\"rmb\",\"roles\":null,\"affiliation\":\"\",\"enrollmentSecret\":\"\",\"enrollment\":{\"signingIdentity\":\"$ID\",\"identity\":{\"certificate\":\"$(cat /shared/certs/rmb/users/admin/msp/signcerts/cert.pem | sed ':a;N;$!ba;s/\n/\\n/g')\\n\"}}} > /tmp/credentialStore/credential/client-1 && \
+          cat /shared/certs/rmb/users/admin/msp/keystore/key.pem > $ID-priv && \
+          /usr/bin/openssl x509 -pubkey -noout -in /shared/certs/rmb/users/admin/msp/signcerts/cert.pem  > $ID-pub && \
+          echo 'cd $EXPLORER_APP_PATH && node main.js' && \
+          cd $EXPLORER_APP_PATH && node main.js
+        volumeMounts:
+        - mountPath: /shared
+          name: shared
+        - mountPath: /fabric-configs
+          name: fabric-config-json
+      #- name: fabric-explorer-app
+      #  image: foundery.azurecr.io/foundery/fabric-blockchain-explorer:latest
+      #  imagePullPolicy: Always
+      #  command:
+      #  - /bin/sh
+      #  - -c
+      #  - |
+      #    cd $EXPLORER_APP_PATH && node main.js
+      #  ports:
+      #  - containerPort: 8080
+      #    name: explorer-port
+      #  volumeMounts:
+      #  - mountPath: /shared
+      #    name: shared
+      #  - mountPath: /fabric-configs
+      #    name: fabric-config-json
+      #  env:
+      #  - name: TZ
+      #    value: "Africa/Johannesburg"
+      #  readinessProbe:
+      #    httpGet:
+      #      path: /
+      #      port: 8080
+      #    initialDelaySeconds: 30
+      #    timeoutSeconds: 10
+      #  livenessProbe:
+      #    httpGet:
+      #      path: /
+      #      port: 8080
+      #    initialDelaySeconds: 30
+      #    timeoutSeconds: 10
+      volumes:
+      - name: fabric-config-json
+        configMap:
+          name: fabric-explorer
+      - name: shared
+        persistentVolumeClaim:
+          claimName: fabric-storage
+          readOnly: true

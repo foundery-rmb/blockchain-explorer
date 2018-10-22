@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-FROM node:8.11.3-alpine
+FROM node:8
 
 # default values pf environment variables
 # that are used inside container
@@ -23,29 +23,29 @@ ENV STARTUP_SCRIPT /opt
 # set default working dir inside container
 WORKDIR $DEFAULT_WORKDIR
 
-# copy external data to container
-COPY . $EXPLORER_APP_PATH
-
 # install required dependencies by NPM packages:
 # current dependencies are: python, make, g++
 
-RUN apk add --no-cache --virtual npm-deps python make g++ && \
-    python -m ensurepip && \
+RUN apt-get update && \
+    apt-get install -y make g++ libssl-dev python2.7 python-pip jq postgresql-contrib && \
     rm -r /usr/lib/python*/ensurepip && \
-    pip install --upgrade pip setuptools && \
-	rm -r /root/.cache
+    pip install --upgrade pip setuptools
+
+# copy external data to container
+COPY . $EXPLORER_APP_PATH
 
 # install NPM dependencies
 RUN cd $EXPLORER_APP_PATH && npm install && npm build
 
-# build explorer app
-RUN cd $EXPLORER_APP_PATH && cd client && npm install && yarn build
+RUN npm install -g npm
 
-# remove installed packages to free space
-RUN apk del npm-deps
+# build explorer app
+RUN cd $EXPLORER_APP_PATH/client && npm install
+
+RUN cd $EXPLORER_APP_PATH/client &&  npm run build
 
 # expose default ports
 EXPOSE 8080
 
 # run blockchain explorer main app
-CMD node $EXPLORER_APP_PATH/main.js && tail -f /dev/null
+#CMD node $EXPLORER_APP_PATH/main.js && tail -f /dev/null

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fabric-explorer-svc
+  namespace: fabric
+  labels:
+    app: fabric-explorer
+    component: explorer
+spec:
+  selector:
+    app: fabric-explorer
+    component: explorer
+  ports:
+  - name: explorer-port
+    targetPort: 8080
+    port: 8080
+    protocol: TCP

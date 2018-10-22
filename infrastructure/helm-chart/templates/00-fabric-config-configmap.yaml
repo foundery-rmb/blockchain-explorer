@@ -1,0 +1,119 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fabric-explorer
+  namespace: fabric
+data:
+  config.json: |
+     {
+       "network-configs": {
+         "network-1": {
+           "version": "1.0",
+           "clients": {
+             "client-1": {
+               "tlsEnable": false,
+               "organization": "rmb",
+               "channel": "domestic-guarantees",
+               "credentialStore": {
+                 "path": "/tmp/credentialStore/credential",
+                 "cryptoStore": {
+                   "path": "/tmp/credentialStore/crypto"
+                 }
+               }
+             }
+           },
+           "channels": {
+             "domestic-guarantees": {
+               "peers": {
+                 "rmb-peer0-svc": {},
+                 "investec-peer0-svc": {},
+                 "sars-peer0-svc": {}
+               },
+               "connection": {
+                 "timeout": {
+                   "peer": {
+                     "endorser": "6000",
+                     "eventHub": "6000",
+                     "eventReg": "6000"
+                   }
+                 }
+               }
+             }
+           },
+           "organizations": {
+             "rmb": {
+               "mspid": "rmb",
+               "fullpath": false,
+               "adminPrivateKey": {
+                 "path":
+                   "/shared/certs/rmb/users/admin/msp/keystore"
+               },
+               "signedCert": {
+                 "path":
+                   "/shared/certs/rmb/users/admin/msp/signcerts"
+               }
+             },
+             "investec": {
+               "mspid": "investec",
+               "fullpath": false,
+               "adminPrivateKey": {
+                 "path":
+                   "/shared/certs/investec/users/admin/msp/keystore"
+               },
+               "signedCert": {
+                 "path":
+                   "/shared/certs/investec/users/admin/msp/signcerts"
+               }
+             },
+             "sars": {
+               "mspid": "sars",
+               "fullpath": false,
+               "adminPrivateKey": {
+                 "path":
+                   "/shared/certs/sars/users/admin/msp/keystore"
+               },
+               "signedCert": {
+                 "path":
+                   "/shared/certs/sars/users/admin/msp/signcerts"
+               }
+             }
+           },
+           "peers": {
+             "rmb-peer0-svc": {
+               "url": "grpc://rmb-peer0-svc:7051",
+               "eventUrl": "grpc://rmb-peer0-svc:7053",
+               "grpcOptions": {
+                 "ssl-target-name-override": "rmb-peer0-svc"
+               }
+             },
+             "investec-peer0-svc": {
+               "url": "grpc://investec-peer0-svc:7051",
+               "eventUrl": "grpc://investec-peer0-svc:7053",
+               "grpcOptions": {
+                 "ssl-target-name-override": "investec-peer0-svc"
+               }
+             },
+             "sars-peer0-svc": {
+               "url": "grpc://sars-peer0-svc:7051",
+               "eventUrl": "grpc://sars-peer0-svc:7053",
+               "grpcOptions": {
+                 "ssl-target-name-override": "sars-peer0-svc"
+               }
+             }
+           },
+           "orderers": {
+             "rmb-orderer-svc": {
+               "url": "grpc://rmb-orderer-svc:7050"
+             },
+             "investec-orderer-svc": {
+               "url": "grpc://investec-orderer-svc:7050"
+             },
+             "sars-orderer-svc": {
+               "url": "grpc://sars-orderer-svc:7050"
+             }
+           }
+         }
+       },
+       "configtxgenToolPath": "/home/sdh/Desktop/foundery/blockchain/experiments/fabric-samples/bin",
+       "license": "Apache-2.0"
+     }
