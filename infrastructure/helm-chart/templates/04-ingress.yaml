@@ -12,9 +12,9 @@ spec:
   tls:
   - secretName: guarantee-explorer-crt
     hosts:
-    - guarantee-explorer.blockchain.foundery.club
+    - fabric-explorer.blockchain.foundery.club
   rules:
-  - host: guarantee-explorer.blockchain.foundery.club
+  - host: fabric-explorer.blockchain.foundery.club
     http:
       paths:
       - path: /

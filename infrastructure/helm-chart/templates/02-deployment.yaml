@@ -37,7 +37,10 @@ spec:
           name: shared
       - name: fabric-explorer-app
         image: foundery.azurecr.io/foundery/fabric-blockchain-explorer:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
+        env:
+        - name: HOST
+          value: "localhost"
         command:
         - /bin/sh
         - -c
@@ -53,8 +56,22 @@ spec:
           echo {\"name\":\"admin\",\"mspid\":\"rmb\",\"roles\":null,\"affiliation\":\"\",\"enrollmentSecret\":\"\",\"enrollment\":{\"signingIdentity\":\"$ID\",\"identity\":{\"certificate\":\"$(cat /shared/certs/rmb/users/admin/msp/signcerts/cert.pem | sed ':a;N;$!ba;s/\n/\\n/g')\\n\"}}} > /tmp/credentialStore/credential/client-1 && \
           cat /shared/certs/rmb/users/admin/msp/keystore/key.pem > $ID-priv && \
           /usr/bin/openssl x509 -pubkey -noout -in /shared/certs/rmb/users/admin/msp/signcerts/cert.pem  > $ID-pub && \
-          echo 'cd $EXPLORER_APP_PATH && node main.js' && \
-          cd $EXPLORER_APP_PATH && node main.js
+          cd $EXPLORER_APP_PATH && (node main.js &) && \
+          cd $EXPLORER_APP_PATH && node sync.js
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 30
+          timeoutSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 30
+          timeoutSeconds: 10
         volumeMounts:
         - mountPath: /shared
           name: shared
